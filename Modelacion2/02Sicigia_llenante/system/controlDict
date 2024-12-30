@@ -1,0 +1,245 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interMixingFoam;
+
+startFrom       startTime;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         6000;
+
+deltaT          0.005;
+
+writeControl    adjustableRunTime;
+
+writeInterval   10;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+maxAlphaCo      0.5;
+
+maxDeltaT       1;
+
+
+// ************************************************************************* //
+
+functions
+{
+	scalar1
+	{
+	type            scalarTransport;
+	libs ("libsolverFunctionObjects.so");
+	enabled true;
+	writeControl outputTime; // write scalar field results
+	
+	field SST; //name of scalar field
+	nCorr 1; //number of corrector loop
+	D 0.0001; //difussion coefficient
+//    schemesField U;  // Name of field to use when looking up schemes from fvSchemes
+
+	log yes;
+	}
+
+	scalar2
+	{
+	type            scalarTransport;
+	libs ("libsolverFunctionObjects.so");
+	enabled true;
+	writeControl outputTime; // write scalar field results
+	
+	field ColFec; //name of scalar field
+	nCorr 1; //number of corrector loop
+	D 0.0001; //difussion coefficient
+//    schemesField U;  // Name of field to use when looking up schemes from fvSchemes
+
+	log yes;
+	}
+
+    scalar3
+	{
+	type            scalarTransport;
+	libs ("libsolverFunctionObjects.so");
+	enabled true;
+	writeControl outputTime; // write scalar field results
+	
+	field NTK; //name of scalar field
+	nCorr 1; //number of corrector loop
+	D 0.0001; //difussion coefficient
+//    schemesField U;  // Name of field to use when looking up schemes from fvSchemes
+
+	log yes;
+	}
+
+    scalar4
+	{
+	type            scalarTransport;
+	libs ("libsolverFunctionObjects.so");
+	enabled true;
+	writeControl outputTime; // write scalar field results
+	
+	field DBO5; //name of scalar field
+	nCorr 1; //number of corrector loop
+	D 0.0001; //difussion coefficient
+//    schemesField U;  // Name of field to use when looking up schemes from fvSchemes
+
+	log yes;
+	}
+
+	    // fieldAverage2: Guarda los promedios de un campo en todo el dominio en cada iteración en un .dat de postProcessing //
+    fieldAverageCelda1
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona1;
+    operation       volAverage;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+
+    fields
+    (
+        ColFec
+    );
+	}
+
+    fieldAverageCelda1U
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona1;
+    operation       CoV;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+
+    fields
+    (
+        ColFec
+    );
+	}
+
+    fieldAverageCelda2
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona2;
+    operation       volAverage;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+
+    fields
+    (
+        ColFec
+    );
+	}
+
+    fieldAverageCelda2U
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona2;
+    operation       CoV;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+    timeStart       2000;
+
+    fields
+    (
+        ColFec
+    );
+	}
+
+    runTimeControl1
+{
+    type            runTimeControl;
+    libs            ("libutilityFunctionObjects.so");
+    timeStart       1000;
+    conditions
+    {
+        condition0
+        {
+            type            average;
+            functionObject  fieldAverageCelda1;
+            fields          (volAverage(zona1,ColFec));
+            tolerance       1e-5;
+            window          20;
+	        windowType      approximate;
+        }
+        condition1
+        {
+            type            average;
+            functionObject  fieldAverageCelda2;
+            fields          (volAverage(zona2,ColFec));
+            tolerance       1e-5;
+            window          20;
+	        windowType      approximate;
+        }
+    }
+}
+};
