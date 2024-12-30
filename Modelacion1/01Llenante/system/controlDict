@@ -1,0 +1,258 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  dev                                   |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+application     interMixingFoam;
+
+startFrom       0;
+
+startTime       0;
+
+stopAt          endTime;
+
+endTime         6000;
+
+deltaT          0.001;
+
+writeControl    adjustableRunTime;
+
+writeInterval   10;
+
+purgeWrite      0;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable yes;
+
+adjustTimeStep  yes;
+
+maxCo           0.5;
+maxAlphaCo      0.5;
+
+maxDeltaT       1;
+
+
+// ************************************************************************* //
+
+functions
+{
+    // fieldAverage1: Para cada punto en el dominio se calcula el promedio de un campo respecto al tiempo transcurrido //
+	fieldAverage1
+	{
+    // Mandatory entries (unmodifiable)
+    type            fieldAverage;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    fields
+    (
+        alpha.other
+        {
+            mean        yes;
+            prime2Mean  yes;
+            base        time;
+        }
+    );
+    log             true;
+    executeControl  writeTime;
+    writeControl    writeTime;
+	}
+
+    // fieldAverage2: Guarda los promedios de un campo en todo el dominio en cada iteración en un .dat de postProcessing //
+    fieldAverageCelda1
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona1;
+    operation       volAverage;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+
+    fields
+    (
+        alpha.other
+    );
+	}
+
+    fieldAverageCelda1U
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona1;
+    operation       CoV;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+    timeStart       1;
+
+    fields
+    (
+        alpha.other
+    );
+	}
+
+    fieldAverageCelda2
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona2;
+    operation       volAverage;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+
+    fields
+    (
+        alpha.other
+    );
+	}
+
+    fieldAverageCelda2U
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona2;
+    operation       CoV;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+    timeStart       2000;
+
+    fields
+    (
+        alpha.other
+    );
+	}
+
+    fieldAverageCelda3
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     false;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona3;
+    operation       volAverage;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+
+    fields
+    (
+        alpha.other
+    );
+	}
+
+    fieldAverageCelda3U
+	{
+    // Mandatory entries (unmodifiable)
+    type            volFieldValue;
+    libs            ("libfieldFunctionObjects.so");
+
+    // Mandatory entries (runtime modifiable)
+    log             true;
+    writeControl    writeTime;
+    writeFields     true;
+
+    regionType      cellZone; // Check how to define a cellZone for specific averages
+    name            zona3;
+    operation       CoV;
+    executeControl  writeTime;
+    writeControl    writeTime;
+    writeToFile     true;
+    timeStart       2000;
+
+    fields
+    (
+        alpha.other
+    );
+	}
+
+runTimeControl1
+{
+    type            runTimeControl;
+    libs            ("libutilityFunctionObjects.so");
+    timeStart       1000;
+    conditions
+    {
+        condition0
+        {
+            type            average;
+            functionObject  fieldAverageCelda1;
+            fields          (volAverage(zona1,alpha.other));
+            tolerance       1e-5;
+            window          20;
+	        windowType      approximate;
+        }
+        condition1
+        {
+            type            average;
+            functionObject  fieldAverageCelda2;
+            fields          (volAverage(zona2,alpha.other));
+            tolerance       1e-5;
+            window          20;
+	        windowType      approximate;
+        }
+    }
+}
+
+};
